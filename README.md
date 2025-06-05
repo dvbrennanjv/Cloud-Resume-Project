@@ -20,20 +20,23 @@ S3 Docs : https://docs.aws.amazon.com/s3/
 
 ---
 
-## Security Best Practices
+## Security & Best Practices
 
-1. **Avoid exposing bucket names in public repositories**  
-   Store bucket names in `terraform.tfvars` or `locals.tf` files that are excluded from version control. Public bucket names can be exploited for object brute forcing, phishing, or scams.
+1. **Keep Bucket Names Private**  
+   Store bucket names in `terraform.tfvars` or `locals.tf` and `.gitignore` them. Public exposure can lead to brute force object discovery or abuse.
 
-2. **Sanitize CloudFront configuration before publishing**  
-   Remove or generalize sensitive settings such as TTLs, cookie forwarding, and caching behaviors. These details can be abused to generate unwanted traffic or cache misuse.
+2. **Sanitize CloudFront Settings for Public Repos**  
+   Remove overly specific configurations like TTLs, forwarded cookies, or detailed cache behavior. These can be exploited to disrupt or abuse traffic patterns.
 
-3. **Keep bucket policies in a separate file and add it to `.gitignore`**  
-   This prevents accidental exposure of sensitive bucket permissions or ARNs in public repos.
+3. **IAM Policies**  
+   Always write your bucket policy in a separate `.json` or `.txt` file and exclude it from source control to prevent leaking ARNs or over-permissive settings.
+   Its good practice to have policies follow the principal of least priviledge
 
-4. **Using up to date security protocols**
-   I reccomend when setting up the SSL certificate with CloudFront that you use also specify to use the latest security policy (TLSv1.2_2021 in my case) as well as using HTTP/3
-   It requires no extra steps on the bucket as CloudFront will handle the negotiation automatically.
+4. **Use Modern TLS and HTTP/3**  
+   When configuring SSL, use the latest security policy (e.g., `TLSv1.2_2021`) and enable HTTP/3 in your CloudFront distribution. No changes are needed on the bucket side.
+
+5. **Implement Error Handling in Lambda**  
+   Use `try/except` blocks or structured error handling in your Lambda functions to avoid silent failures and improve debugging.
 
 ---
 
@@ -53,10 +56,15 @@ Configure CloudFront via Terraform to use your S3 bucket as the origin. Enable O
 Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use AWS Certificate Manager to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but you it may be simpler to just use AWS for and add the records via the console.
 *Note:* The SSL Cert needs to be requested in the North Virginia Region to work with CloudFront
 
-### Step 5 Integrating our new Domain and SSL Cert with Cloud Front
+### Step 5 Integrating our new Domain and SSL Cert with CloudFront
 Right, now that we have our domain and SSL certificate all ready, lets now use these for our CloudFront distribution. We'll head over to where we our hosting our DNS recordsets and create a new CNAME record and link it to our distributions domain name. Again we'll use terraform to create this record. We'll need to edit our cloudfront distribution as well and add and alias that matches our new domain name.
 
-### Step 6 Adding a View Counter (Optional Step)
+### Step 6 View Counter Setup (Optional Step)
+Later on when we start coding our resume, we're going to want to know how many people viewed our website. To get started we'll create a DynamoDB table to store our view count.
+To actually update the table we're going to use Lambda and a little python scripting. We'll create the python script in our repo so we have version control and can easily re-use for other projects if we wanted to. I've included a copy of the python script I created and have tried to include as many notes as possible for those who may be new to scripting.
+*Note:* I'd reccomend using the 'Pay Per Request' billing mode as it'll save some money if you don't expect a ton of traffic. Also keeps the table scalable.
+
+### Step 7 View Counter Permissions and API Gateway (Optional Step)
 
 ---
 

@@ -76,8 +76,43 @@ resource "aws_cloudfront_distribution" "resume_distribution" {
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
+}
 
-  tags = {
-    Environment = "Production"
-  }
+resource "aws_dynamodb_table" "view_counter_db" {
+    name = "view-counter"
+    billing_mode = "PAY_PER_REQUEST"
+
+    hash_key = "id"
+
+    attribute {
+      name = "id"
+      type = "S"
+    }
+}
+
+resource "aws_iam_role" "lambda_execution_role" {
+  name = "lambda-dynamodb-execution-role"
+  assume_role_policy = file("${path.module}/execution-policy.txt")
+}
+
+resource "aws_iam_policy" "lambda_dynamodb_policy" {
+  name = "lambda-dynamodb-policy"
+  policy = file("${path.module}/lambda-policy.txt")
+}
+
+resource "aws_iam_role_policy_attachment" "name" {
+  depends_on = [ aws_iam_policy.lambda_dynamodb_policy, aws_iam_role.lambda_execution_role ]
+  role = aws_iam_role.lambda_execution_role.name
+  policy_arn = aws_iam_policy.lambda_dynamodb_policy.arn
+}
+
+resource "aws_lambda_function" "view_counter_function" {
+  function_name = "viewer-counter"
+  runtime = "python3.13"
+  handler = "view_counter.lambda_handler"
+  filename = "view_counter.zip"
+  role = aws_iam_role.lambda_execution_role.arn
+
+  source_code_hash = filebase64sha256("view_counter.zip")
+
 }

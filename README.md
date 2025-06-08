@@ -65,7 +65,7 @@ To actually update the table we're going to use Lambda and a little python scrip
 *Note:* I'd reccomend using the 'Pay Per Request' billing mode as it'll save some money if you don't expect a ton of traffic. Also keeps the table scalable.
 
 ### Step 7 View Counter Permissions and API Gateway (Optional Step)
-
+Okay, now that we have our script we need to create the Lambda function itself. We'll go ahead and create that using terraform as well as a new IAM role for the function. We'll need to give it the ability to assume the role of the lambda service as well as have a policy that allows Get/Put/Update for our dynamoDB table and for logging.
 ---
 
 

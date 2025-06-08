@@ -39,6 +39,9 @@ S3 Docs : https://docs.aws.amazon.com/s3/
    Use `try/except` blocks or structured error handling in your Lambda functions to avoid silent failures and improve debugging.
 
 ---
+# Architecture Diagram
+![Cloud Resume Architecture](CRP-Architecture-Diagram.png)
+---
 
 ## How-To Guide
 

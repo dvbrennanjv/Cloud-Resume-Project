@@ -62,10 +62,36 @@ Right, now that we have our domain and SSL certificate all ready, lets now use t
 ### Step 6 View Counter Setup (Optional Step)
 Later on when we start coding our resume, we're going to want to know how many people viewed our website. To get started we'll create a DynamoDB table to store our view count.
 To actually update the table we're going to use Lambda and a little python scripting. We'll create the python script in our repo so we have version control and can easily re-use for other projects if we wanted to. I've included a copy of the python script I created and have tried to include as many notes as possible for those who may be new to scripting.
-*Note:* I'd reccomend using the 'Pay Per Request' billing mode as it'll save some money if you don't expect a ton of traffic. Also keeps the table scalable.
+*Note:* I'd reccomend using the **Pay Per Request** billing mode as it'll save some money if you don't expect a ton of traffic. Also keeps the table scalable.
 
-### Step 7 View Counter Permissions and API Gateway (Optional Step)
-Okay, now that we have our script we need to create the Lambda function itself. We'll go ahead and create that using terraform as well as a new IAM role for the function. We'll need to give it the ability to assume the role of the lambda service as well as have a policy that allows Get/Put/Update for our dynamoDB table and for logging.
+### Step 7 View Counter Permissions and Lambda function (Optional Step)
+Okay, now that we have our script, we need to create the Lambda function itself. We'll go ahead and create that using Terraform, as well as a new IAM role for the function.  
+We'll need to give it the ability to:
+- Assume the role of the Lambda service
+- Access `GetItem`, `PutItem`, and `UpdateItem` actions for our DynamoDB table
+- Write logs to CloudWatch (CreateLogGroup, CreateLogStream, PutLogEvents)
+
+All of this will be handled with a Terraform IAM policy document. API Gateway is the next bit we're going to tackle.
+
+### Step 8 API Gateway Setup (Optional Step)
+We need an API Gateway as a way to trigger our Lambda function. We'll use a REST HTTP endpoint and configure CORS on it so our domain can call this API.  
+The reason for configuring CORS is that we **only want our domain** to be able to call this API.  
+When coding our resume later, we'll add a bit of JavaScript to fetch this API and display the view count on our resume site.
+
+### Step 9 Pipeline Setup
+Now that all of our infrastructure is set up, we want a way to automatically update our bucket whenever we make a change to our HTML.  
+We'll set up a simple pipeline to do this. Jenkins or GitLab are both good tools for handling this. I already have Jenkins set up for other projects so I'm going to stick with that.
+
+There’s a little bit of setup if you haven’t used a pipeline before:
+- Generate some SSH keys
+- Create a webhook for our GitHub repo
+- Split out our Terraform and HTML into separate folders (`/infrastructure` and `/site`)
+- Create a Jenkins pipeline that only syncs the `/site` folder to S3 on update
+
+If you’re hosting Jenkins on AWS, it’s best to use an **IAM Role** with an **EC2 Instance Profile** for permissions.  
+Since I’m hosting Jenkins in Azure, I created a new **IAM user** with programmatic access for Jenkins and gave it only the permissions it needs.
+
+*Note:* Your Jenkins IAM user/role should always follow the **principle of least privilege**. 
 ---
 
 

@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_DEFAULT_REGION = "YOUR REGION"
+        AWS_ACCESS_KEY_ID = credentials('ACCESS KEY SECRET IN JENKINS')
+        AWS_SECRET_ACCESS_KEY = credentials('SECRET ACCESS KEY IN JENKINS')
+        BUCKET_NAME = credentials('BUCKET NAME')
+        CLOUDFRONT_ID = credentials('CLOUDFRONT ID')
+    }
+
+    stages {
+        stage('Clone Repo'){
+            steps{
+                git branch: 'main', credentialsId: 'Github_SSH', url: 'git@github.com:your-username/your-repo.git'
+            }
+        }
+        stage('Sync Bucket'){
+            steps{
+                dir('site'){
+                    sh "aws s3 sync . s3://$BUCKET_NAME --delete"
+                }
+            }
+        }
+        stage('Invalidate CloudFront Cache'){
+            steps{
+                sh "aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths '/*'"
+            }
+        }
+    }
+}

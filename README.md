@@ -1,22 +1,37 @@
 # Cloud Resume Project
 
+This project is a full-stack, cloud-native deployment example of how to execute the Cloud Resume Project. It showcases many different technologies including AWS infrastructure, Terraform, automation pipelines, and serverless computing, all designed with production-grade security and scalability in mind. 
 ---
 
 ## Technologies Used  
-- AWS  
-- Terraform  
-- HTML / CSS / JavaScript  
-- Python  
-- Jenkins  
-- GitHub
-- Azure (for DNS/Hosting Jenkins)
+- AWS: S3, CloudFront, API Gateway, Lambda, DynamoDB, Route53, ACM, IAM  
+- Terraform: Infrastructure as Code Tool  
+- Frontend: HTML / CSS / Javascript 
+- Backend: Python (for Lambda)  
+- Jenkins : For CI/CD 
+- GitHub : Version Control
+- Azure : DNS Records and Jenkins host
 
 ---
 
 ## Useful Links
-AWS Terraform Registry Documentation : https://registry.terraform.io/providers/hashicorp/aws/latest/docs
-CloudFront Docs : https://docs.aws.amazon.com/cloudfront/
-S3 Docs : https://docs.aws.amazon.com/s3/
+- [Terraform AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)  
+  Official resource for defining AWS infrastructure using Terraform.
+
+- [Amazon CloudFront Documentation](https://docs.aws.amazon.com/cloudfront/)  
+  Configure content delivery networks, edge caching, HTTPS, and more.
+
+- [Amazon S3 Documentation](https://docs.aws.amazon.com/s3/)  
+  Store and serve static files securely from the cloud.
+
+- [Amazon API Gateway Documentation](https://docs.aws.amazon.com/apigateway/)  
+  Build, deploy, and manage APIs for Lambda and other AWS services.
+
+- [Jenkins Documentation](https://www.jenkins.io/doc/)  
+  Automate CI/CD pipelines to deploy infrastructure and sync content.
+
+- [HTML/CSS Crash Course](https://www.youtube.com/watch?v=G3e-cpL7ofc&t=7756s) 
+  Good place to start if your new to the world of HTML and CSS
 
 ---
 
@@ -53,10 +68,10 @@ Use Terraform to provision an S3 bucket for hosting your static site assets (HTM
 *Note:* While it’s good practice to use a separate bucket for Terraform state files, for solo projects it’s acceptable to keep the state locally.
 
 ### Step 3: CloudFront Distribution Setup  
-Configure CloudFront via Terraform to use your S3 bucket as the origin. Enable Origin Access Control (OAC) to restrict bucket access exclusively to CloudFront. Set viewer protocol policy to redirect all HTTP traffic to HTTPS, preparing for SSL certificate integration.
+Configure CloudFront via Terraform to use your S3 bucket as the origin. Enable **Origin Access Control (OAC)** to restrict bucket access exclusively to CloudFront. Set viewer protocol policy to redirect all HTTP traffic to HTTPS, preparing for SSL certificate integration.
 
 ### Step 4 Purchase Domain and SSL Cert
-Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use AWS Certificate Manager to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but you it may be simpler to just use AWS for and add the records via the console.
+Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use **AWS Certificate Manager** to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but you it may be simpler to just use AWS for and add the records via the console.
 *Note:* The SSL Cert needs to be requested in the North Virginia Region to work with CloudFront
 
 ### Step 5 Integrating our new Domain and SSL Cert with CloudFront
@@ -93,8 +108,5 @@ There’s a little bit of setup if you haven’t used a pipeline before:
 
 If you’re hosting Jenkins on AWS, it’s best to use an **IAM Role** with an **EC2 Instance Profile** for permissions.  
 Since I’m hosting Jenkins in Azure, I created a new **IAM user** with programmatic access for Jenkins and gave it only the permissions it needs.
-
 *Note:* Your Jenkins IAM user/role should always follow the **principle of least privilege**. 
 ---
-
-

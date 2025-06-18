@@ -108,5 +108,12 @@ There’s a little bit of setup if you haven’t used a pipeline before:
 
 If you’re hosting Jenkins on AWS, it’s best to use an **IAM Role** with an **EC2 Instance Profile** for permissions.  
 Since I’m hosting Jenkins in Azure, I created a new **IAM user** with programmatic access for Jenkins and gave it only the permissions it needs.
-*Note:* Your Jenkins IAM user/role should always follow the **principle of least privilege**. 
+*Note:* Your Jenkins IAM user/role should always follow the **principle of least privilege**.
+
+### Step 10 - Javascript for View Counter
+We are pretty much at the end here. All we need to do left is code up our resume and add the javascript so we can talk to our api. I've included a snippet of how I've gone about this but can vary depending on how you set this up. Inside our actual HTML file we can reference our script using a "script" block. and use a "span" block to show our view count. I've also went back and added a pipeline stage for packaging our python script and updating Lambda with edits.
+*Note:* Our API endpoint is exposed in our javascript file but since we are using CORS and theres no senstive info being returned we dont really mind. We could set up throttling in API Gateway if we were really concerned
+
+###
+
 ---

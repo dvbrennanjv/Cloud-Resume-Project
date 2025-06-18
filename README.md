@@ -30,8 +30,8 @@ This project is a full-stack, cloud-native deployment example of how to execute 
 - [Jenkins Documentation](https://www.jenkins.io/doc/)  
   Automate CI/CD pipelines to deploy infrastructure and sync content.
 
-- [HTML/CSS Crash Course](https://www.youtube.com/watch?v=G3e-cpL7ofc&t=7756s) 
-  Good place to start if your new to the world of HTML and CSS
+- [HTML/CSS Crash Course](https://www.youtube.com/watch?v=G3e-cpL7ofc&t=7756s)  
+  Good place to start if you're new to the world of HTML and CSS
 
 ---
 
@@ -65,13 +65,15 @@ Create a new GitHub repository to manage your source code with version control. 
 
 ### Step 2: S3 Bucket Creation  
 Use Terraform to provision an S3 bucket for hosting your static site assets (HTML, CSS, JavaScript). Keep static website hosting **disabled** since CloudFront will handle content delivery.  
+
 *Note:* While it’s good practice to use a separate bucket for Terraform state files, for solo projects it’s acceptable to keep the state locally.
 
 ### Step 3: CloudFront Distribution Setup  
 Configure CloudFront via Terraform to use your S3 bucket as the origin. Enable **Origin Access Control (OAC)** to restrict bucket access exclusively to CloudFront. Set viewer protocol policy to redirect all HTTP traffic to HTTPS, preparing for SSL certificate integration.
 
 ### Step 4 Purchase Domain and SSL Cert
-Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use **AWS Certificate Manager** to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but you it may be simpler to just use AWS for and add the records via the console.
+Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use **AWS Certificate Manager** to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but you it may be simpler to just use AWS for and add the records via the console.  
+
 *Note:* The SSL Cert needs to be requested in the North Virginia Region to work with CloudFront
 
 ### Step 5 Integrating our new Domain and SSL Cert with CloudFront
@@ -79,7 +81,8 @@ Right, now that we have our domain and SSL certificate all ready, lets now use t
 
 ### Step 6 View Counter Setup (Optional Step)
 Later on when we start coding our resume, we're going to want to know how many people viewed our website. To get started we'll create a DynamoDB table to store our view count.
-To actually update the table we're going to use Lambda and a little python scripting. We'll create the python script in our repo so we have version control and can easily re-use for other projects if we wanted to. I've included a copy of the python script I created and have tried to include as many notes as possible for those who may be new to scripting.
+To actually update the table we're going to use Lambda and a little python scripting. We'll create the python script in our repo so we have version control and can easily re-use for other projects if we wanted to. I've included a copy of the python script I created and have tried to include as many notes as possible for those who may be new to scripting.  
+
 *Note:* I'd reccomend using the **Pay Per Request** billing mode as it'll save some money if you don't expect a ton of traffic. Also keeps the table scalable.
 
 ### Step 7 View Counter Permissions and Lambda function (Optional Step)
@@ -107,12 +110,15 @@ There’s a little bit of setup if you haven’t used a pipeline before:
 - Create a Jenkins pipeline that only syncs the `/site` folder to S3 on update
 
 If you’re hosting Jenkins on AWS, it’s best to use an **IAM Role** with an **EC2 Instance Profile** for permissions.  
-Since I’m hosting Jenkins in Azure, I created a new **IAM user** with programmatic access for Jenkins and gave it only the permissions it needs.
+Since I’m hosting Jenkins in Azure, I created a new **IAM user** with programmatic access for Jenkins and gave it only the permissions it needs.  
+
 *Note:* Your Jenkins IAM user/role should always follow the **principle of least privilege**.
 
 ### Step 10 - Javascript for View Counter
-We are pretty much at the end here. All we need to do left is code up our resume and add the javascript so we can talk to our api. I've included a snippet of how I've gone about this but can vary depending on how you set this up. Inside our actual HTML file we can reference our script using a "script" block. and use a "span" block to show our view count. I've also went back and added a pipeline stage for packaging our python script and updating Lambda with edits.
-*Note:* Our API endpoint is exposed in our javascript file but since we are using CORS and theres no senstive info being returned we dont really mind. We could set up throttling in API Gateway if we were really concerned
+We are pretty much at the end here. All we need to do left is code up our resume and add the javascript so we can talk to our api. I've included a snippet of how I've gone about this but can vary depending on how you set this up. Inside our actual HTML file we can reference our script using a **script** block. and use a **span** block to show our view count. I've 
+also went back and added a pipeline stage for packaging our python script and updating Lambda with edits.  
+
+*Note:* Our API endpoint is exposed in our javascript file but since we are using **CORS** and theres no senstive info being returned we dont really mind. We could set up throttling in API Gateway if we were really concerned
 
 ###
 

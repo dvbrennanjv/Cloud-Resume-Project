@@ -15,6 +15,19 @@ pipeline {
                 git branch: 'main', credentialsId: 'Github_SSH', url: 'git@github.com:your-username/your-repo.git'
             }
         }
+        stage('Update Lambda Code'){
+            steps{
+                dir('scripts'){
+                    sh 'zip -r view_counter_jenkins.zip view_counter.py'
+                    sh '''
+                    aws lambda update-function-code \
+                        --function-name viewer-counter \
+                        --zip-file fileb://view_counter_jenkins.zip \
+                        --publish
+                    '''
+                }
+            }
+        }
         stage('Sync Bucket'){
             steps{
                 dir('site'){

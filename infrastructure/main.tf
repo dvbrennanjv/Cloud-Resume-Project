@@ -25,12 +25,22 @@ resource "aws_s3_bucket_policy" "resume_bucket_policy" {
   policy = file("${path.module}/bucket-policy.txt")
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "resume_bucket_encryption" {
+  bucket = aws_s3_bucket.resume_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 resource "aws_cloudfront_origin_access_control" "resume_oac" {
-  name                             = "resume-oac"
-  description                      = "OAC for CloudFront distribution"
+  name                              = "resume-oac"
+  description                       = "OAC for CloudFront distribution"
   origin_access_control_origin_type = "s3"
-  signing_behavior                 = "always"
-  signing_protocol                 = "sigv4"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 resource "aws_cloudfront_distribution" "resume_distribution" {
@@ -48,12 +58,12 @@ resource "aws_cloudfront_distribution" "resume_distribution" {
   }
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = aws_s3_bucket.resume_bucket.id
-    default_ttl            = 3600
-    min_ttl                = 0
-    max_ttl                = 86400
+    allowed_methods  = ["GET", "HEAD"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = aws_s3_bucket.resume_bucket.id
+    default_ttl      = 3600
+    min_ttl          = 0
+    max_ttl          = 86400
 
     forwarded_values {
       query_string = false
@@ -79,80 +89,85 @@ resource "aws_cloudfront_distribution" "resume_distribution" {
 }
 
 resource "aws_dynamodb_table" "view_counter_db" {
-    name = "view-counter"
-    billing_mode = "PAY_PER_REQUEST"
+  name         = "view-counter"
+  billing_mode = "PAY_PER_REQUEST"
 
-    hash_key = "id"
+  hash_key = "id"
 
-    attribute {
-      name = "id"
-      type = "S"
-    }
+  attribute {
+    name = "id"
+    type = "S"
+  }
 }
 
 resource "aws_iam_role" "lambda_execution_role" {
-  name = "lambda-dynamodb-execution-role"
+  name               = "lambda-dynamodb-execution-role"
   assume_role_policy = file("${path.module}/execution-policy.txt")
 }
 
 resource "aws_iam_policy" "lambda_dynamodb_policy" {
-  name = "lambda-dynamodb-policy"
+  name   = "lambda-dynamodb-policy"
   policy = file("${path.module}/lambda-policy.txt")
 }
 
 resource "aws_iam_role_policy_attachment" "name" {
-  depends_on = [ aws_iam_policy.lambda_dynamodb_policy, aws_iam_role.lambda_execution_role ]
-  role = aws_iam_role.lambda_execution_role.name
+  depends_on = [aws_iam_policy.lambda_dynamodb_policy, aws_iam_role.lambda_execution_role]
+  role       = aws_iam_role.lambda_execution_role.name
   policy_arn = aws_iam_policy.lambda_dynamodb_policy.arn
 }
 
 resource "aws_lambda_function" "view_counter_function" {
   function_name = "viewer-counter"
-  runtime = "python3.13"
-  handler = "view_counter.lambda_handler"
-  filename = "view_counter.zip"
-  role = aws_iam_role.lambda_execution_role.arn
+  runtime       = "python3.13"
+  handler       = "view_counter.lambda_handler"
+  filename      = "view_counter.zip"
+  role          = aws_iam_role.lambda_execution_role.arn
 
   source_code_hash = filebase64sha256("view_counter.zip")
 
 }
 
 resource "aws_apigatewayv2_api" "view_counter_api" {
-  name = "view-counter-api"
+  name          = "view-counter-api"
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_headers = ["*"]
-    allow_methods = ["GET"]
-    allow_origins = ["https://${var.resume_domain_name}"]
+    allow_headers  = ["*"]
+    allow_methods  = ["GET"]
+    allow_origins  = ["https://${var.resume_domain_name}"]
     expose_headers = []
-    max_age = 3600
+    max_age        = 3600
   }
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
-  api_id = aws_apigatewayv2_api.view_counter_api.id
-  integration_type = "AWS_PROXY"
-  integration_uri = aws_lambda_function.view_counter_function.invoke_arn
-  integration_method = "POST"
+  api_id                 = aws_apigatewayv2_api.view_counter_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.view_counter_function.invoke_arn
+  integration_method     = "POST"
   payload_format_version = "2.0"
 }
 
 resource "aws_apigatewayv2_route" "view_counter_route" {
-  api_id = aws_apigatewayv2_api.view_counter_api.id
+  api_id    = aws_apigatewayv2_api.view_counter_api.id
   route_key = "GET /views"
-  target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
 resource "aws_apigatewayv2_stage" "prod_stage" {
   api_id = aws_apigatewayv2_api.view_counter_api.id
-  name = "prod"
+  name   = "prod"
+
+  default_route_settings {
+    throttling_burst_limit = 5
+    throttling_rate_limit  = 10
+  }
 }
 
 resource "aws_lambda_permission" "allow_api" {
-  statement_id = "AllowExecutionFromAPIGateway"
-  action = "lambda:InvokeFunction"
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.view_counter_function.function_name
-  principal = "apigateway.amazonaws.com"
-  source_arn = "${aws_apigatewayv2_api.view_counter_api.execution_arn}/*/*"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.view_counter_api.execution_arn}/*/*"
 }

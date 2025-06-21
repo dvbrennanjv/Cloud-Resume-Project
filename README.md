@@ -53,10 +53,10 @@ This project is a full-stack, cloud-native deployment example of how to execute 
 5. **Implement Error Handling in Lambda**  
    Use `try/except` blocks or structured error handling in your Lambda functions to avoid silent failures and improve debugging.
 
-6. **Keep Terraform State hidden**
-   If you're storing terraform state locally, I'd reccomend adding it to your `.gitignore`. If you're using storing state somewhere like S3 , I'd limit who has access to that bucket and make sure **encryption** is turned on. Terraform state can have sensitive information in it such as ARNs so always a best practice to limit who has access to it.
+6. **Keep Terraform State hidden**  
+   If you're storing terraform state locally, I'd reccomend adding it to your `.gitignore`. If you're using a remote backend like S3 , I'd limit who has access to that bucket and make sure **encryption** is turned on. Terraform state can have sensitive information in it such as ARNs so always a best practice to limit who has access to it.
 
-7. **Integrate terraform provisioning in pipeline**
+7. **Integrate terraform provisioning in pipeline**  
    While I am happy with this project, if I was to go back and start again I'd have a pipeline stage for provisioning our infrastrucutre as well as an optional stage to de-provision everything. Benefit of doing it that way allows us to be able to just update our terraform code, push it to github and not have to manually run a terraform apply. From a cost savings perspective, we'd be able to easily destory everything whenever we didn't need our website up.
 
 ---

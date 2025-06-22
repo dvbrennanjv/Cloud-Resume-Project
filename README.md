@@ -81,12 +81,12 @@ Use Terraform to provision an S3 bucket for hosting your static site assets (HTM
 Configure CloudFront via Terraform to use your S3 bucket as the origin. Enable **Origin Access Control (OAC)** to restrict bucket access exclusively to CloudFront. Set viewer protocol policy to redirect all HTTP traffic to HTTPS, preparing for SSL certificate integration.
 
 ### Step 4 Purchase Domain and SSL Cert
-Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use **AWS Certificate Manager** to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but you it may be simpler to just use AWS for and add the records via the console.  
+Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use **AWS Certificate Manager** to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but it may be simpler to just use AWS for and add the records via the console.  
 
 *Note:* The SSL Cert needs to be requested in the North Virginia Region to work with CloudFront.
 
 ### Step 5 Integrating our new Domain and SSL Cert with CloudFront
-Right, now that we have our domain and SSL certificate all ready, lets now use these for our CloudFront distribution. We'll head over to where we our hosting our DNS recordsets and create a new CNAME record and link it to our distributions domain name. Again we'll use terraform to create this record. We'll need to edit our cloudfront distribution as well and add and alias that matches our new domain name.
+Right, now that we have our domain and SSL certificate all ready, lets now use these for our CloudFront distribution. We'll head over to where we our hosting our DNS recordsets and create a new CNAME record and link it to our distributions domain name. Again we'll use terraform to create this record. We'll need to edit our cloudfront distribution as well and add an alias that matches our new domain name.
 
 ### Step 6 View Counter Setup (Optional Step)
 Later on when we start coding our resume, we're going to want to know how many people viewed our website. To get started we'll create a DynamoDB table to store our view count.

@@ -14,10 +14,6 @@ provider "aws" {
 
 resource "aws_s3_bucket" "resume_bucket" {
   bucket = var.resume_bucket_name
-
-  tags = {
-    Name = "resume-bucket"
-  }
 }
 
 resource "aws_s3_bucket_policy" "resume_bucket_policy" {

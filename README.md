@@ -31,7 +31,7 @@ This project is a full-stack, cloud-native deployment example of how to execute 
   Automate CI/CD pipelines to deploy infrastructure and sync content.
 
 - [HTML/CSS Crash Course](https://www.youtube.com/watch?v=G3e-cpL7ofc&t=7756s)  
-  Good place to start if you're new to the world of HTML and CSS
+  Good place to start if you're new to the world of HTML and CSS.
 
 ---
 
@@ -45,7 +45,7 @@ This project is a full-stack, cloud-native deployment example of how to execute 
 
 3. **IAM Policies**  
    Always write your bucket policy in a separate `.json` or `.txt` file and exclude it from source control to prevent leaking ARNs or over-permissive settings.
-   Its good practice to have policies follow the principal of least priviledge
+   It's good practice to have policies follow the principle of least privilege.
 
 4. **Use Modern TLS and HTTP/3**  
    When configuring SSL, use the latest security policy (e.g., `TLSv1.2_2021`) and enable HTTP/3 in your CloudFront distribution. No changes are needed on the bucket side.
@@ -53,11 +53,14 @@ This project is a full-stack, cloud-native deployment example of how to execute 
 5. **Implement Error Handling in Lambda**  
    Use `try/except` blocks or structured error handling in your Lambda functions to avoid silent failures and improve debugging.
 
-6. **Keep Terraform State hidden**  
-   If you're storing terraform state locally, I'd reccomend adding it to your `.gitignore`. If you're using a remote backend like S3 , I'd limit who has access to that bucket and make sure **encryption** is turned on. Terraform state can have sensitive information in it such as ARNs so always a best practice to limit who has access to it.
+6. **Keep Terraform State Hidden**  
+   If you're storing terraform state locally, I'd strongly reccomend adding it to your `.gitignore`. If you're using a remote backend like S3 , I'd limit who has access to that bucket and make sure **encryption** is turned on. Terraform state can have sensitive information in it such as ARNs so always a best practice to limit who has access to it.
 
-7. **Integrate terraform provisioning in pipeline**  
+7. **Integrate Terraform Provisioning in Pipeline**  
    While I am happy with this project, if I was to go back and start again I'd have a pipeline stage for provisioning our infrastrucutre as well as an optional stage to de-provision everything. Benefit of doing it that way allows us to be able to just update our terraform code, push it to github and not have to manually run a terraform apply. From a cost savings perspective, we'd be able to easily destory everything whenever we didn't need our website up.
+
+8. **Tagging Infrastructure**  
+   Tagging is a best practice in infrastructure management, especially in production environments. I’ve intentionally left out tags, as tagging strategies should be tailored to your organization’s workflow and standards. I'd reccomend to define a consistent tagging policy that outlines required tags (e.g., Environment, Owner, CostCenter) and ensures meaningful metadata is applied to all resources for visibility, cost tracking, and governance.
 
 ---
 # Architecture Diagram
@@ -74,13 +77,13 @@ Use Terraform to provision an S3 bucket for hosting your static site assets (HTM
 
 *Note:* While it’s good practice to use a separate bucket for Terraform state files, for solo projects it’s acceptable to keep the state locally.
 
-### Step 3: CloudFront Distribution Setup  
+### Step 3: CloudFront Distribution Setup — Secure CDN with OAC and HTTPS
 Configure CloudFront via Terraform to use your S3 bucket as the origin. Enable **Origin Access Control (OAC)** to restrict bucket access exclusively to CloudFront. Set viewer protocol policy to redirect all HTTP traffic to HTTPS, preparing for SSL certificate integration.
 
 ### Step 4 Purchase Domain and SSL Cert
 Next we want to a custom domain name instead of just the cloudfront domain name. We can purchase a domain for as little as 12$ from Route 53. We can then use **AWS Certificate Manager** to generate an SSL certificate. To validate it we need to add the CNAME records to our hosted zone. I use Azure to host my DNS records for my domains and terraform to create the records but you it may be simpler to just use AWS for and add the records via the console.  
 
-*Note:* The SSL Cert needs to be requested in the North Virginia Region to work with CloudFront
+*Note:* The SSL Cert needs to be requested in the North Virginia Region to work with CloudFront.
 
 ### Step 5 Integrating our new Domain and SSL Cert with CloudFront
 Right, now that we have our domain and SSL certificate all ready, lets now use these for our CloudFront distribution. We'll head over to where we our hosting our DNS recordsets and create a new CNAME record and link it to our distributions domain name. Again we'll use terraform to create this record. We'll need to edit our cloudfront distribution as well and add and alias that matches our new domain name.
@@ -124,7 +127,7 @@ Since I’m hosting Jenkins in Azure, I created a new **IAM user** with programm
 We are pretty much at the end here. All we need to do left is code up our resume and add the javascript so we can talk to our api. I've included a snippet of how I've gone about this but can vary depending on how you set this up. Inside our actual HTML file we can reference our script using a **script** block. and use a **span** block to show our view count. I've 
 also went back and added a pipeline stage for packaging our python script and updating Lambda with edits.  
 
-*Note:* Our API endpoint is exposed in our javascript file but since we are using **CORS** and theres no senstive info being returned we dont really mind. We could set up throttling in API Gateway if we were really concerned
+*Note:* Our API endpoint is exposed in our javascript file but since we are using **CORS** and theres no senstive info being returned we dont really mind. We could set up throttling in API Gateway if we were really concerned.
 
 ### Step 11 - Some extra security precautions  
 While we are pretty much done, I'm going to go back and add in two more security measures. In our **prod** API gateway stage, I'm going to enable throttling just to prevent abuse of the api. (WAF integration with CloudFront could be another route as well.) I'm also going to enable **server-side encryption** on our S3 bucket. If we wanted to take the project further we could set up some auditng with CloudTrail and CloudWatch alarms.
